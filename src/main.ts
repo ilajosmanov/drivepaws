@@ -1,11 +1,21 @@
 import Vue from 'vue';
 import App from './App.vue';
+import './plugins';
 import './registerServiceWorker';
-import router from './router';
+import { router } from './router';
+import { init, initGeocoder } from './core/gmaps';
 
 Vue.config.productionTip = false;
 
-new Vue({
+const app = new Vue({
   router,
   render: (h) => h(App),
-}).$mount('#app');
+});
+
+router.onReady(async () => {
+  await init();
+
+  initGeocoder();
+
+  app.$mount('#app');
+});

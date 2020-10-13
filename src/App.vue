@@ -1,32 +1,91 @@
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
+  name: 'App',
+});
+</script>
+
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <main class="maincontent">
+      <RouterView />
+    </main>
   </div>
 </template>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+@import "./assets/scss/vars";
+
+[v-cloak] {
+  display: none;
 }
 
-#nav {
-  padding: 30px;
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+html, body {
+  width: 100%;
+  height: 100%;
+}
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
+html {
+  font-size: 16px;
+  font-family: "Rubik", sans-serif;
+  color: var(--dark);
+}
+
+body {
+  margin: 0;
+
+  display: flex;
+
+  overflow: hidden;
+}
+
+#app {
+  flex: 1 0;
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.maincontent {
+  display: grid;
+  grid-template: "main";
+
+  background: var(--light);
+
+  position: relative;
+  z-index: 0;
+  overflow-x: hidden;
+
+  > .view {
+    background: var(--light);
+    grid-area: main;
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    scroll-behavior: smooth;
   }
+
+  > :first-child {
+    z-index: 1;
+  }
+}
+
+button {
+  font-family: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+  color: inherit;
 }
 </style>
