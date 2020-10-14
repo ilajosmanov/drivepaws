@@ -4,11 +4,11 @@ import DButton from '../shared/DButton.vue';
 import {
   $orders,
   $isOrderTaken,
-  Order,
   fxTakeOrder,
   fxFinishOrder,
   fxCancelOrder,
 } from '../models/orders';
+import { OrderResponse } from '../api/types/order';
 
 export default Vue.extend({
   name: 'OrderDetails',
@@ -29,11 +29,17 @@ export default Vue.extend({
     },
   },
 
-  computed: {
-    currentOrder(): Order | null {
-      // eslint-disable-next-line no-underscore-dangle
-      return this.$orders.find((order) => order._id === this.id) || null;
-    },
+  data: () => ({
+    currentOrder: null as OrderResponse | null,
+  }),
+
+  created() {
+    // eslint-disable-next-line no-underscore-dangle
+    const order = this.$orders.find((i) => i._id === this.id);
+
+    if (order) {
+      this.currentOrder = { ...order };
+    }
   },
 
   methods: {
@@ -107,7 +113,10 @@ export default Vue.extend({
         </div>
       </div>
 
-      <div class="order-details-view__item">
+      <div
+        v-if="currentOrder.injury.length"
+        class="order-details-view__item"
+      >
         <p class="order-details-view__label">
           Опис тварини
         </p>
@@ -136,30 +145,30 @@ export default Vue.extend({
             </li>
           </ul>
         </div>
+      </div>
 
-        <div class="order-details-view__item">
-          <p class="order-details-view__label">
-            Ім'я
-          </p>
+      <div class="order-details-view__item">
+        <p class="order-details-view__label">
+          Ім'я
+        </p>
 
-          <div class="order-details-view__body">
-            {{ currentOrder.name }}
-          </div>
+        <div class="order-details-view__body">
+          {{ currentOrder.name }}
         </div>
+      </div>
 
-        <div class="order-details-view__item">
-          <p class="order-details-view__label">
-            Номер телефону
-          </p>
+      <div class="order-details-view__item">
+        <p class="order-details-view__label">
+          Номер телефону
+        </p>
 
-          <div class="order-details-view__body">
-            <a
-              :href="`tel:${currentOrder.phone}`"
-              class="order-details-view__link"
-            >
-              {{ currentOrder.phone }}
-            </a>
-          </div>
+        <div class="order-details-view__body">
+          <a
+            :href="`tel:${currentOrder.phone}`"
+            class="order-details-view__link"
+          >
+            {{ currentOrder.phone }}
+          </a>
         </div>
       </div>
     </div>

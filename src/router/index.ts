@@ -39,7 +39,6 @@ const routes: RouteConfig[] = [
       id: params.id,
     }),
     beforeEnter,
-
   },
   {
     path: '/auth',

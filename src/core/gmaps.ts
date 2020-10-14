@@ -6,7 +6,6 @@ const global = window as any;
 let initialized = !!global.google;
 
 const API_KEY = process.env.VUE_APP_GOOGLE_KEY_API;
-console.log(API_KEY);
 
 const CALLBACK_NAME = 'gmapsCallback';
 

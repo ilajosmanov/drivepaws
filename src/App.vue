@@ -1,8 +1,15 @@
 <script lang="ts">
 import Vue from 'vue';
+import { sockedCreated } from './api';
+import { userLoaded } from './models/users';
 
 export default Vue.extend({
   name: 'App',
+
+  created() {
+    userLoaded();
+    sockedCreated();
+  },
 });
 </script>
 

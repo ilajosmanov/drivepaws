@@ -9,6 +9,7 @@ import { attach, createDomain } from 'effector-logger';
 import { router } from '../router';
 import { fxRequestInternal, HttpNetworkError } from '../api';
 import { tokenUpdated } from './session';
+import { userLoaded } from './users';
 
 const model = createDomain();
 
@@ -48,6 +49,11 @@ sample({
       name: 'Orders',
     });
   }),
+});
+
+forward({
+  from: fxLogin.done,
+  to: userLoaded,
 });
 
 type LoginPayload = {

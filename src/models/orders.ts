@@ -1,13 +1,18 @@
-/* eslint-disable no-await-in-loop, no-restricted-syntax */
+/* eslint-disable no-await-in-loop, no-restricted-syntax, no-underscore-dangle */
 import {
   createStore,
   attach,
   Effect,
-  createEffect,
-  sample,
+  createEvent,
+  guard,
 } from 'effector-logger';
-import { fxGeocode } from '../core/gmaps';
-import { fxRequestAuthorized, HttpNetworkError } from '../api';
+import { OrderResponse } from '../api/types/order';
+import {
+  fxRequestAuthorized, HttpNetworkError,
+  newOrder,
+  orderCanceled,
+  orderTaken,
+} from '../api';
 
 const fxFetchOrders: Effect<void, {results: OrderResponse[]; totalCount: number}, HttpNetworkError> = attach({
   effect: fxRequestAuthorized,
@@ -17,24 +22,12 @@ const fxFetchOrders: Effect<void, {results: OrderResponse[]; totalCount: number}
   }),
 });
 
-const fxParseAddress = createEffect<OrderResponse[], Order[]>({
-  handler: async (payload) => {
-    const orders: Order[] = [];
-
-    for (const item of payload) {
-      const result = await fxGeocode({
-        lat: item.location[0],
-        lng: item.location[1],
-      });
-
-      orders.push({
-        ...item,
-        address: result[0].formatted_address,
-      });
-    }
-
-    return orders;
-  },
+const fxFetchOrder: Effect<string, OrderResponse, HttpNetworkError> = attach({
+  effect: fxRequestAuthorized,
+  mapParams: (id) => ({
+    method: 'GET' as const,
+    path: `/driver-order/${id}`,
+  }),
 });
 
 const fxTakeOrder: Effect<string, boolean, HttpNetworkError> = attach({
@@ -61,9 +54,11 @@ const fxCancelOrder: Effect<string, boolean, HttpNetworkError> = attach({
   }),
 });
 
+const orderLoaded = createEvent();
+
 const $isLoading = fxFetchOrders.pending;
 
-const $orders = createStore<Order[]>([]);
+const $orders = createStore<OrderResponse[]>([]);
 const $isOrderTaken = createStore(false);
 
 $isOrderTaken
@@ -75,34 +70,25 @@ $orders
     ...order,
     address: '',
   })))
-  .on(fxParseAddress.doneData, (_, results) => results);
+  .on(fxFetchOrder.doneData, (state, order) => {
+    const isOrderExist = state.find((item) => item._id === order._id);
 
-sample({
-  source: $orders,
-  clock: fxFetchOrders.done,
-  target: fxParseAddress,
+    if (isOrderExist) {
+      return state;
+    }
+    return [...state, order];
+  })
+  .on(newOrder, (state, order) => [{ ...order, address: 'Test address' }, ...state])
+  .on([orderTaken, orderCanceled], (state, id) => state.filter((i) => i._id !== id));
+
+guard(orderLoaded, {
+  filter: $orders.map((orders) => !orders.length),
+  target: fxFetchOrders,
 });
-
-type OrderResponse = {
-  canWait: boolean;
-  createdAt: string;
-  documents: string[];
-  injury: string;
-  location: number[];
-  name: string;
-  orderStatus: number;
-  phone: string;
-  quantity: number;
-  _id: string;
-}
-
-export type Order = OrderResponse & {
-  address: string;
-}
 
 export {
   $orders,
-  fxFetchOrders,
+  orderLoaded,
   fxTakeOrder,
   fxFinishOrder,
   fxCancelOrder,

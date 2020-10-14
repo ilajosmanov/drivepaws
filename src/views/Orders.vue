@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import OrderItem from '../components/OrderItem.vue';
 import DLoader from '../shared/DLoader.vue';
-import { $orders, $isLoading, fxFetchOrders } from '../models/orders';
+import { $orders, $isLoading, orderLoaded } from '../models/orders';
 
 export default Vue.extend({
   name: 'Orders',
@@ -27,7 +27,7 @@ export default Vue.extend({
   },
 
   created() {
-    fxFetchOrders();
+    orderLoaded();
   },
 });
 </script>
