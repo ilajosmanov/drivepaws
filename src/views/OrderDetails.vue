@@ -98,9 +98,13 @@ export default Vue.extend({
           Адреса
         </p>
 
-        <div class="order-details-view__body order-details-view__body--address">
-          {{ currentOrder.address }}
-        </div>
+        <a
+          :href="`https://maps.google.com/?q=${currentOrder.location[0]},${currentOrder.location[1]}`"
+          target="_blank"
+          class="order-details-view__body order-details-view__body--address"
+        >
+          {{ currentOrder.locationName }}
+        </a>
       </div>
 
       <div class="order-details-view__item">

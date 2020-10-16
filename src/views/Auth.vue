@@ -16,7 +16,7 @@ export default Vue.extend({
 
   computed: {
     is() {
-      return this.$route.query.type || 'SignupForm';
+      return this.$route.query.type || 'SigninForm';
     },
   },
 

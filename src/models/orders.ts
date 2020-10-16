@@ -5,6 +5,7 @@ import {
   Effect,
   createEvent,
   guard,
+  createEffect,
 } from 'effector-logger';
 import { OrderResponse } from '../api/types/order';
 import {
@@ -14,12 +15,27 @@ import {
   orderTaken,
 } from '../api';
 
-const fxFetchOrders: Effect<void, {results: OrderResponse[]; totalCount: number}, HttpNetworkError> = attach({
+const fxFetchActiveOrders: Effect<void, {results: OrderResponse[]; totalCount: number}, HttpNetworkError> = attach({
   effect: fxRequestAuthorized,
   mapParams: () => ({
     method: 'GET' as const,
     path: '/order',
   }),
+});
+
+const fxFetchFinishedOrders: Effect<void, {results: OrderResponse[]; totalCount: number}, HttpNetworkError> = attach({
+  effect: fxRequestAuthorized,
+  mapParams: () => ({
+    method: 'GET' as const,
+    path: '/order/finished',
+  }),
+});
+
+const fxFetchOrders = createEffect({
+  handler() {
+    fxFetchActiveOrders();
+    fxFetchFinishedOrders();
+  },
 });
 
 const fxFetchOrder: Effect<string, OrderResponse, HttpNetworkError> = attach({
@@ -56,7 +72,7 @@ const fxCancelOrder: Effect<string, boolean, HttpNetworkError> = attach({
 
 const orderLoaded = createEvent();
 
-const $isLoading = fxFetchOrders.pending;
+const $isLoading = fxFetchActiveOrders.pending;
 
 const $orders = createStore<OrderResponse[]>([]);
 const $isOrderTaken = createStore(false);
@@ -66,10 +82,8 @@ $isOrderTaken
   .on([fxFinishOrder, fxCancelOrder], () => false);
 
 $orders
-  .on(fxFetchOrders.doneData, (_, { results }) => results.map((order) => ({
-    ...order,
-    address: '',
-  })))
+  .on(fxFetchActiveOrders.doneData, (state, { results }) => [...results, ...state])
+  .on(fxFetchFinishedOrders.doneData, (state, { results }) => [...results, ...state])
   .on(fxFetchOrder.doneData, (state, order) => {
     const isOrderExist = state.find((item) => item._id === order._id);
 
@@ -78,7 +92,7 @@ $orders
     }
     return [...state, order];
   })
-  .on(newOrder, (state, order) => [{ ...order, address: 'Test address' }, ...state])
+  .on(newOrder, (state, order) => [order, ...state])
   .on([orderTaken, orderCanceled], (state, id) => state.filter((i) => i._id !== id));
 
 guard(orderLoaded, {

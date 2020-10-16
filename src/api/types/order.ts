@@ -3,7 +3,8 @@ export type OrderResponse = {
   createdAt: string;
   documents: string[];
   injury: string;
-  location: (string | number)[];
+  location: number[];
+  locationName: string;
   name: string;
   orderStatus: number;
   phone: string;
